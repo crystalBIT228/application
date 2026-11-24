@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubXO — Управление данными</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body {
+            background: linear-gradient(rgba(44, 62, 80, 0.92), rgba(44, 62, 80, 0.92)),
+                        linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            background-attachment: fixed;
+            color: white;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 1.8rem; font-weight: bold; }
+        .logo a { color: lightpink; text-decoration: none; }
+        header nav { display: flex; gap: 24px; }
+        header nav a {
+            color: #ecf0f1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        header nav a:hover, header nav a.active { color: lightpink; }
+        .content { padding: 2rem 0 3rem; flex: 1; }
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .subtitle { color: #bdc3c7; margin-bottom: 2rem; }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            padding-bottom: 0.5rem;
+        }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ecf0f1;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { background: rgba(255,255,255,0.08); }
+        .tab-btn.active {
+            background: #3498db;
+            border-color: #3498db;
+            color: white;
+        }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .form-card {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            max-width: 520px;
+        }
+        .form-card h3 { margin-bottom: 1rem; color: lightpink; }
+        label { display: block; margin: 10px 0 4px; font-size: 0.95rem; }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #555;
+            background: #34495e;
+            color: white;
+            font-size: 1rem;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 11px 22px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 0.85rem;
+            margin: 0 4px 0 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        th { color: #3498db; font-weight: 600; }
+        tr:hover { background: rgba(255,255,255,0.04); }
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: white;
+        }
+        .badge-active { background: #27ae60; }
+        .badge-inactive { background: #7f8c8d; }
+        .badge-expired { background: #e74c3c; }
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .alert-success { background: #27ae60; display: block; }
+        .alert-error { background: #e74c3c; display: block; }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        @media (max-width: 900px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 2rem 0;
+            margin-top: auto;
+        }
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #bdc3c7;
+        }
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo"><a href="index.html">SubXO</a></div>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="catalog.html">Каталог</a>
+                <a href="manage.html" class="active">Управление</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="content">
+        <div class="container">
+            <h1>Управление данными</h1>
+            <p class="subtitle">Все сущности и связи. Данные сохраняются в localStorage браузера.</p>
+
+            <div id="alert" class="alert"></div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="subs">Подписки</button>
+                <button class="tab-btn" data-tab="cats">Категории</button>
+                <button class="tab-btn" data-tab="prices">Цены</button>
+                <button class="tab-btn" data-tab="periods">Периоды</button>
+                <button class="tab-btn" data-tab="pays">Платежи</button>
+            </div>
+
+            <!-- ПОДПИСКИ -->
+            <div id="panel-subs" class="panel active">
+                <div class="two-col">
+                    <div class="form-card">
+                        <h3>Добавить / изменить подписку</h3>
+                        <form id="formSub">
+                            <input type="hidden" id="sub_id">
+                            <label>Название *</label>
+                            <input type="text" id="sub_name" required>
+                            <label>Сайт (URL)</label>
+                            <input type="url" id="sub_website">
+                            <label>Ссылка доступа</label>
+                            <input type="url" id="sub_access">
+                            <label>Категория *</label>
+                            <select id="sub_category" required></select>
+                            <label>Статус</label>
+                            <select id="sub_status">
+                                <option value="active">active</option>
+                                <option value="inactive">inactive</option>
+                                <option value="expired">expired</option>
+                            </select>
+                            <button type="submit" class="btn">Сохранить подписку</button>
+                            <button type="button" class="btn btn-danger" id="btnClearSub" style="margin-left:8px;">Очистить</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom:0.8rem;">Список подписок</h3>
+                        <div style="overflow-x:auto;">
+                            <table>
+                                <thead>
+                                    <tr><th>ID</th><th>Название</th><th>Категория</th><th>Статус</th><th></th></tr>
+                                </thead>
+                                <tbody id="tableSubs"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- КАТЕГОРИИ -->
+            <div id="panel-cats" class="panel">
+                <div class="two-col">
+                    <div class="form-card">
+                        <h3>Добавить категорию</h3>
+                        <form id="formCat">
+                            <input type="hidden" id="cat_id">
+                            <label>Название *</label>
+                            <input type="text" id="cat_name" required>
+                            <button type="submit" class="btn">Сохранить категорию</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom:0.8rem;">Список категорий</h3>
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Название</th><th></th></tr>
+                            </thead>
+                            <tbody id="tableCats"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ЦЕНЫ -->
+            <div id="panel-prices" class="panel">
+                <div class="two-col">
+                    <div class="form-card">
+                        <h3>Добавить цену</h3>
+                        <form id="formPrice">
+                            <label>Подписка *</label>
+                            <select id="price_sub" required></select>
+                            <label>Цена *</label>
+                            <input type="number" id="price_value" min="0" step="0.01" required>
+                            <label>Валюта *</label>
+                            <select id="price_valuta">
+                                <option value="RUB">RUB</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                            </select>
+                            <button type="submit" class="btn">Добавить цену</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom:0.8rem;">Цены подписок</h3>
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Подписка</th><th>Цена</th><th>Валюта</th><th></th></tr>
+                            </thead>
+                            <tbody id="tablePrices"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ПЕРИОДЫ -->
+            <div id="panel-periods" class="panel">
+                <div class="two-col">
+                    <div class="form-card">
+                        <h3>Добавить период действия</h3>
+                        <form id="formPeriod">
+                            <label>Подписка *</label>
+                            <select id="period_sub" required></select>
+                            <label>Дата начала *</label>
+                            <input type="date" id="period_start" required>
+                            <label>Дата окончания *</label>
+                            <input type="date" id="period_end" required>
+                            <label>Активный период</label>
+                            <select id="period_active">
+                                <option value="true">Да</option>
+                                <option value="false">Нет</option>
+                            </select>
+                            <label>Заметки</label>
+                            <textarea id="period_notes" rows="2"></textarea>
+                            <button type="submit" class="btn">Добавить период</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom:0.8rem;">Периоды</h3>
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Подписка</th><th>Начало</th><th>Конец</th><th>Активен</th><th></th></tr>
+                            </thead>
+                            <tbody id="tablePeriods"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ПЛАТЕЖИ -->
+            <div id="panel-pays" class="panel">
+                <div class="two-col">
+                    <div class="form-card">
+                        <h3>Добавить платёж</h3>
+                        <form id="formPay">
+                            <label>Подписка *</label>
+                            <select id="pay_sub" required></select>
+                            <label>Дата платежа *</label>
+                            <input type="date" id="pay_date" required>
+                            <label>Сумма *</label>
+                            <input type="number" id="pay_sum" min="0" step="0.01" required>
+                            <label>Заметки</label>
+                            <textarea id="pay_notes" rows="2"></textarea>
+                            <button type="submit" class="btn">Добавить платёж</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom:0.8rem;">История платежей</h3>
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Подписка</th><th>Дата</th><th>Сумма</th><th>Заметки</th><th></th></tr>
+                            </thead>
+                            <tbody id="tablePays"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; SubXO. Данные только в браузере.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const KEY = 'subxo_data_v1';
+
+        // --- Упрощённое хранение ---
+        function getData() {
+            try {
+                const d = JSON.parse(localStorage.getItem(KEY) || '{}');
+                return {
+                    categories: d.categories || [],
+                    subscriptions: d.subscriptions || [],
+                    subscription_prices: d.subscription_prices || [],
+                    subscription_periods: d.subscription_periods || [],
+                    pays: d.pays || []
+                };
+            } catch {
+                return { categories: [], subscriptions: [], subscription_prices: [], subscription_periods: [], pays: [] };
+            }
+        }
+
+        function saveData(data) {
+            localStorage.setItem(KEY, JSON.stringify(data));
+        }
+
+        // Следующий ID = max существующих + 1 (без отдельного счётчика)
+        function nextId(arr, field) {
+            return Math.max(0, ...arr.map(x => x[field] || 0)) + 1;
+        }
+
+        function showAlert(msg, type = 'success') {
+            const el = document.getElementById('alert');
+            el.textContent = msg;
+            el.className = 'alert alert-' + type;
+            setTimeout(() => { el.className = 'alert'; el.textContent = ''; }, 3000);
+        }
+
+        // Табы
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Селекты
+        function fillSubSelects() {
+            const data = getData();
+            const opts = data.subscriptions.map(s =>
+                `<option value="${s.subscription_id}">${s.name}</option>`
+            ).join('') || '<option value="">Нет подписок</option>';
+            ['price_sub', 'period_sub', 'pay_sub'].forEach(id => {
+                document.getElementById(id).innerHTML = opts;
+            });
+        }
+
+        function fillCategorySelect() {
+            const data = getData();
+            document.getElementById('sub_category').innerHTML =
+                data.categories.map(c => `<option value="${c.category_id}">${c.name}</option>`).join('')
+                || '<option value="">Сначала создайте категорию</option>';
+        }
+
+        // Рендер таблиц
+        function renderAll() {
+            const data = getData();
+            fillSubSelects();
+            fillCategorySelect();
+
+            document.getElementById('tableSubs').innerHTML = data.subscriptions.map(s => {
+                const cat = data.categories.find(c => c.category_id === s.category_id);
+                const st = s.status === 'active' ? 'badge-active' : (s.status === 'expired' ? 'badge-expired' : 'badge-inactive');
+                return `<tr>
+                    <td>${s.subscription_id}</td>
+                    <td>${s.name}</td>
+                    <td>${cat ? cat.name : '—'}</td>
+                    <td><span class="badge ${st}">${s.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm" onclick="editSub(${s.subscription_id})">✏️</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSub(${s.subscription_id})">🗑</button>
+                    </td>
+                </tr>`;
+            }).join('') || '<tr><td colspan="5">Нет подписок</td></tr>';
+
+            document.getElementById('tableCats').innerHTML = data.categories.map(c => {
+                const count = data.subscriptions.filter(s => s.category_id === c.category_id).length;
+                return `<tr>
+                    <td>${c.category_id}</td>
+                    <td>${c.name} <small style="color:#bdc3c7">(${count})</small></td>
+                    <td>
+                        <button class="btn btn-sm" onclick="editCat(${c.category_id})">✏️</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCat(${c.category_id})">🗑</button>
+                    </td>
+                </tr>`;
+            }).join('') || '<tr><td colspan="3">Нет категорий</td></tr>';
+
+            document.getElementById('tablePrices').innerHTML = data.subscription_prices.map(p => {
+                const sub = data.subscriptions.find(s => s.subscription_id === p.subscription_id);
+                return `<tr>
+                    <td>${p.price_id}</td>
+                    <td>${sub ? sub.name : '?'}</td>
+                    <td>${p.price}</td>
+                    <td>${p.valuta}</td>
+                    <td><button class="btn btn-sm btn-danger" onclick="deletePrice(${p.price_id})">🗑</button></td>
+                </tr>`;
+            }).join('') || '<tr><td colspan="5">Нет цен</td></tr>';
+
+            document.getElementById('tablePeriods').innerHTML = data.subscription_periods.map(p => {
+                const sub = data.subscriptions.find(s => s.subscription_id === p.subscription_id);
+                return `<tr>
+                    <td>${p.period_id}</td>
+                    <td>${sub ? sub.name : '?'}</td>
+                    <td>${p.start_date}</td>
+                    <td>${p.end_date}</td>
+                    <td>${p.active_period ? '✅' : '—'}</td>
+                    <td><button class="btn btn-sm btn-danger" onclick="deletePeriod(${p.period_id})">🗑</button></td>
+                </tr>`;
+            }).join('') || '<tr><td colspan="6">Нет периодов</td></tr>';
+
+            document.getElementById('tablePays').innerHTML = data.pays.map(p => {
+                const sub = data.subscriptions.find(s => s.subscription_id === p.subscription_id);
+                return `<tr>
+                    <td>${p.pay_id}</td>
+                    <td>${sub ? sub.name : '?'}</td>
+                    <td>${p.pay_date}</td>
+                    <td>${p.sum}</td>
+                    <td>${p.notes || '—'}</td>
+                    <td><button class="btn btn-sm btn-danger" onclick="deletePay(${p.pay_id})">🗑</button></td>
+                </tr>`;
+            }).join('') || '<tr><td colspan="6">Нет платежей</td></tr>';
+        }
+
+        // === Подписки ===
+        document.getElementById('formSub').addEventListener('submit', e => {
+            e.preventDefault();
+            const data = getData();
+            const id = document.getElementById('sub_id').value;
+            const obj = {
+                name: document.getElementById('sub_name').value.trim(),
+                website_url: document.getElementById('sub_website').value.trim(),
+                access_link: document.getElementById('sub_access').value.trim(),
+                category_id: parseInt(document.getElementById('sub_category').value),
+                status: document.getElementById('sub_status').value
+            };
+            if (!obj.name || !obj.category_id) {
+                showAlert('Заполните обязательные поля', 'error');
+                return;
+            }
+            if (id) {
+                const idx = data.subscriptions.findIndex(s => s.subscription_id == id);
+                if (idx >= 0) data.subscriptions[idx] = { ...data.subscriptions[idx], ...obj };
+                showAlert('Подписка обновлена');
+            } else {
+                obj.subscription_id = nextId(data.subscriptions, 'subscription_id');
+                data.subscriptions.push(obj);
+                showAlert('Подписка добавлена');
+            }
+            saveData(data);
+            document.getElementById('formSub').reset();
+            document.getElementById('sub_id').value = '';
+            renderAll();
+        });
+
+        function editSub(id) {
+            const s = getData().subscriptions.find(x => x.subscription_id === id);
+            if (!s) return;
+            document.getElementById('sub_id').value = s.subscription_id;
+            document.getElementById('sub_name').value = s.name;
+            document.getElementById('sub_website').value = s.website_url || '';
+            document.getElementById('sub_access').value = s.access_link || '';
+            document.getElementById('sub_category').value = s.category_id;
+            document.getElementById('sub_status').value = s.status;
+            document.querySelector('[data-tab="subs"]').click();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteSub(id) {
+            if (!confirm('Удалить подписку и все связанные данные?')) return;
+            const data = getData();
+            data.subscriptions = data.subscriptions.filter(s => s.subscription_id !== id);
+            data.subscription_prices = data.subscription_prices.filter(p => p.subscription_id !== id);
+            data.subscription_periods = data.subscription_periods.filter(p => p.subscription_id !== id);
+            data.pays = data.pays.filter(p => p.subscription_id !== id);
+            saveData(data);
+            showAlert('Подписка и связанные данные удалены');
+            renderAll();
+        }
+
+        document.getElementById('btnClearSub').addEventListener('click', () => {
+            document.getElementById('formSub').reset();
+            document.getElementById('sub_id').value = '';
+        });
+
+        // === Категории ===
+        document.getElementById('formCat').addEventListener('submit', e => {
+            e.preventDefault();
+            const data = getData();
+            const id = document.getElementById('cat_id').value;
+            const name = document.getElementById('cat_name').value.trim();
+            if (!name) return;
+            if (id) {
+                const idx = data.categories.findIndex(c => c.category_id == id);
+                if (idx >= 0) data.categories[idx].name = name;
+                showAlert('Категория обновлена');
+            } else {
+                data.categories.push({ category_id: nextId(data.categories, 'category_id'), name });
+                showAlert('Категория добавлена');
+            }
+            saveData(data);
+            document.getElementById('formCat').reset();
+            document.getElementById('cat_id').value = '';
+            renderAll();
+        });
+
+        function editCat(id) {
+            const c = getData().categories.find(x => x.category_id === id);
+            if (!c) return;
+            document.getElementById('cat_id').value = c.category_id;
+            document.getElementById('cat_name').value = c.name;
+            document.querySelector('[data-tab="cats"]').click();
+        }
+
+        function deleteCat(id) {
+            const data = getData();
+            if (data.subscriptions.some(s => s.category_id === id)) {
+                showAlert('Нельзя удалить: есть подписки в этой категории', 'error');
+                return;
+            }
+            if (!confirm('Удалить категорию?')) return;
+            data.categories = data.categories.filter(c => c.category_id !== id);
+            saveData(data);
+            showAlert('Категория удалена');
+            renderAll();
+        }
+
+        // === Цены ===
+        document.getElementById('formPrice').addEventListener('submit', e => {
+            e.preventDefault();
+            const data = getData();
+            const obj = {
+                price_id: nextId(data.subscription_prices, 'price_id'),
+                subscription_id: parseInt(document.getElementById('price_sub').value),
+                price: parseFloat(document.getElementById('price_value').value),
+                valuta: document.getElementById('price_valuta').value
+            };
+            if (!obj.subscription_id || isNaN(obj.price)) {
+                showAlert('Заполните все поля', 'error');
+                return;
+            }
+            data.subscription_prices.push(obj);
+            saveData(data);
+            showAlert('Цена добавлена');
+            document.getElementById('formPrice').reset();
+            renderAll();
+        });
+
+        function deletePrice(id) {
+            if (!confirm('Удалить цену?')) return;
+            const data = getData();
+            data.subscription_prices = data.subscription_prices.filter(p => p.price_id !== id);
+            saveData(data);
+            showAlert('Цена удалена');
+            renderAll();
+        }
+
+        // === Периоды ===
+        document.getElementById('formPeriod').addEventListener('submit', e => {
+            e.preventDefault();
+            const data = getData();
+            const obj = {
+                period_id: nextId(data.subscription_periods, 'period_id'),
+                subscription_id: parseInt(document.getElementById('period_sub').value),
+                start_date: document.getElementById('period_start').value,
+                end_date: document.getElementById('period_end').value,
+                active_period: document.getElementById('period_active').value === 'true',
+                notes: document.getElementById('period_notes').value.trim()
+            };
+            if (!obj.subscription_id || !obj.start_date || !obj.end_date) {
+                showAlert('Заполните обязательные поля', 'error');
+                return;
+            }
+            data.subscription_periods.push(obj);
+            saveData(data);
+            showAlert('Период добавлен');
+            document.getElementById('formPeriod').reset();
+            renderAll();
+        });
+
+        function deletePeriod(id) {
+            if (!confirm('Удалить период?')) return;
+            const data = getData();
+            data.subscription_periods = data.subscription_periods.filter(p => p.period_id !== id);
+            saveData(data);
+            showAlert('Период удалён');
+            renderAll();
+        }
+
+        // === Платежи ===
+        document.getElementById('formPay').addEventListener('submit', e => {
+            e.preventDefault();
+            const data = getData();
+            const obj = {
+                pay_id: nextId(data.pays, 'pay_id'),
+                subscription_id: parseInt(document.getElementById('pay_sub').value),
+                pay_date: document.getElementById('pay_date').value,
+                sum: parseFloat(document.getElementById('pay_sum').value),
+                notes: document.getElementById('pay_notes').value.trim()
+            };
+            if (!obj.subscription_id || !obj.pay_date || isNaN(obj.sum)) {
+                showAlert('Заполните обязательные поля', 'error');
+                return;
+            }
+            data.pays.push(obj);
+            saveData(data);
+            showAlert('Платёж добавлен');
+            document.getElementById('formPay').reset();
+            renderAll();
+        });
+
+        function deletePay(id) {
+            if (!confirm('Удалить платёж?')) return;
+            const data = getData();
+            data.pays = data.pays.filter(p => p.pay_id !== id);
+            saveData(data);
+            showAlert('Платёж удалён');
+            renderAll();
+        }
+
+        // Открытие редактирования по ?sub=ID
+        const editId = new URLSearchParams(location.search).get('sub');
+        if (editId) setTimeout(() => editSub(parseInt(editId)), 100);
+
+        renderAll();
+    </script>
+</body>
+</html>
